@@ -16,6 +16,8 @@ byte lastOnButtonState;
 byte lastOffButtonState;
 
 unsigned long lastOnDebounceTime = 0;  // the last time the output pin was toggled
+unsigned long wakeDuration = 5000;      //duration of time to stay awake and handle button presses/debounces (in ms)
+unsigned long wakeUpTime;
 unsigned long lastOffDebounceTime = 0;  // the last time the output pin was toggled
 unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
 
@@ -38,49 +40,51 @@ void setup()
 }
 
 void loop() {
-  // If button pressed, send the code.
-  byte onButtonState = digitalRead(onButtonPin);
-  byte offButtonState = digitalRead(offButtonPin);
-
-// If the switch changed, due to noise or pressing:
-  if (onButtonState != lastOnButtonState) {
-    // reset the debouncing timer
-    lastOnDebounceTime = millis();
+  wakeUpTime = millis();
+  while((millis() - wakeUpTime) < wakeDuration){        /*while we need to stay awake, handle button presses*/
+    // If button pressed, send the code.
+    byte onButtonState = digitalRead(onButtonPin);
+    byte offButtonState = digitalRead(offButtonPin);
+  
+  // If the switch changed, due to noise or pressing:
+    if (onButtonState != lastOnButtonState) {
+      // reset the debouncing timer
+      lastOnDebounceTime = millis();
+    }
+    if (offButtonState != lastOffButtonState) {
+      // reset the debouncing timer
+      lastOffDebounceTime = millis();
+    }
+  
+    if ((millis() - lastOnDebounceTime) > debounceDelay) {
+      // whatever the reading is at, it's been there for longer than the debounce
+      // delay, so take it as the actual current state:
+  
+      if (onButtonState) {
+        Serial.println("Pressed on, sending");
+        digitalWrite(STATUS_PIN, HIGH);
+        sendOnCode(lastOnButtonState == onButtonState);
+        digitalWrite(STATUS_PIN, LOW);
+        delay(100); // Wait a bit between retransmissions
+      }     
+   }
+  
+   if ((millis() - lastOffDebounceTime) > debounceDelay) {
+      // whatever the reading is at, it's been there for longer than the debounce
+      // delay, so take it as the actual current state:
+  
+      if (offButtonState) {
+        Serial.println("Pressed off, sending");
+        digitalWrite(STATUS_PIN, HIGH);
+        sendOffCode(lastOffButtonState == offButtonState);
+        digitalWrite(STATUS_PIN, LOW);
+        delay(100); // Wait a bit between retransmissions
+      }     
+   }
+    lastOnButtonState = onButtonState;
+    lastOffButtonState = offButtonState;
   }
-  if (offButtonState != lastOffButtonState) {
-    // reset the debouncing timer
-    lastOffDebounceTime = millis();
-  }
-
-  if ((millis() - lastOnDebounceTime) > debounceDelay) {
-    // whatever the reading is at, it's been there for longer than the debounce
-    // delay, so take it as the actual current state:
-
-    if (onButtonState) {
-      Serial.println("Pressed on, sending");
-      digitalWrite(STATUS_PIN, HIGH);
-      sendOnCode(lastOnButtonState == onButtonState);
-      digitalWrite(STATUS_PIN, LOW);
-      delay(100); // Wait a bit between retransmissions
-    }     
- }
-
- if ((millis() - lastOffDebounceTime) > debounceDelay) {
-    // whatever the reading is at, it's been there for longer than the debounce
-    // delay, so take it as the actual current state:
-
-    if (offButtonState) {
-      Serial.println("Pressed off, sending");
-      digitalWrite(STATUS_PIN, HIGH);
-      sendOffCode(lastOffButtonState == offButtonState);
-      digitalWrite(STATUS_PIN, LOW);
-      delay(100); // Wait a bit between retransmissions
-    }     
- }
-  lastOnButtonState = onButtonState;
-  lastOffButtonState = offButtonState;
-
-  //enterSleep();
+  enterSleep();                                               /*after wakeDuration, go back to sleep*/
 }
 
 void sendOnCode(int repeat) {
