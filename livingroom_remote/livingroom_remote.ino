@@ -1,13 +1,15 @@
 //utilizes 2 buttons now
 
 #include <IRremote.h>
+#include <avr/sleep.h>
+#include <avr/power.h>
 
 int RECV_PIN = 10;
 byte powerPin = 11;
 byte gndPin = 12;
-byte onButtonPin = 6;
-byte offButtonPin = 5;
-byte buttonPressPin = 2;
+const byte onButtonPin = 6;
+const byte offButtonPin = 5;
+const byte buttonPressPin = 2;
 int STATUS_PIN = 13;
 
 byte lastOnButtonState;
@@ -32,18 +34,13 @@ void setup()
   pinMode(offButtonPin, INPUT);
   pinMode(buttonPressPin, INPUT);
   pinMode(STATUS_PIN, OUTPUT);
+
 }
 
 void loop() {
   // If button pressed, send the code.
   byte onButtonState = digitalRead(onButtonPin);
   byte offButtonState = digitalRead(offButtonPin);
-//  if (lastOnButtonState == HIGH && onButtonState == LOW) {
-//    Serial.println("on button pressed");
-//  }
-//  if (lastOffButtonState == HIGH && offButtonState == LOW) {
-//    Serial.println("off button pressed");
-//  }
 
 // If the switch changed, due to noise or pressing:
   if (onButtonState != lastOnButtonState) {
@@ -80,23 +77,10 @@ void loop() {
       delay(100); // Wait a bit between retransmissions
     }     
  }
-
-//  if (onButtonState) {
-//    Serial.println("Pressed on, sending");
-//    digitalWrite(STATUS_PIN, HIGH);
-//    sendOnCode(lastOnButtonState == onButtonState);
-//    digitalWrite(STATUS_PIN, LOW);
-//    delay(100); // Wait a bit between retransmissions
-//  } 
-//  if (offButtonState) {
-//    Serial.println("Pressed off, sending");
-//    digitalWrite(STATUS_PIN, HIGH);
-//    sendOffCode(lastOffButtonState == offButtonState);
-//    digitalWrite(STATUS_PIN, LOW);
-//    delay(100); // Wait a bit between retransmissions
-//  } 
   lastOnButtonState = onButtonState;
   lastOffButtonState = offButtonState;
+
+  //enterSleep();
 }
 
 void sendOnCode(int repeat) {
@@ -113,4 +97,24 @@ void sendOffCode(int repeat) {
   irsend.sendNEC(0x5EA17887, 32);   /*Reciever/computer power*/
   delay(250);
   Serial.println("Sent off code");
+}
+
+//Description: Service routine for pin2 interrupt  
+void pin2Interrupt(void)
+{
+  /* This will bring us back from sleep. */
+}
+//Description: Enters the arduino into sleep mode.
+void enterSleep(void)
+{  
+  /* Setup pin2 as an interrupt and attach handler. */
+  attachInterrupt(0, pin2Interrupt, HIGH);
+  delay(100);  
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);  
+  sleep_enable();  
+  sleep_mode();  
+  /* The program will continue from here. */  
+  /* First thing to do is disable sleep. */
+  sleep_disable(); 
+  detachInterrupt(0);
 }
