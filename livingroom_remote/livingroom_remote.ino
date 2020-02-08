@@ -31,7 +31,7 @@ void setup()
   digitalWrite(gndPin, LOW);
   digitalWrite(powerPin, HIGH);
   
-  Serial.begin(115200);
+  //Serial.begin(115200);
   pinMode(onButtonPin, INPUT);
   pinMode(offButtonPin, INPUT);
   pinMode(buttonPressPin, INPUT);
@@ -61,11 +61,11 @@ void loop() {
       // delay, so take it as the actual current state:
   
       if (onButtonState) {
-        Serial.println("Pressed on, sending");
+        //Serial.println("Pressed on, sending");
         wakeUpTime = millis();                                /*time when user begins interaction with device*/
-        digitalWrite(STATUS_PIN, HIGH);
+        //digitalWrite(STATUS_PIN, HIGH);
         sendOnCode(lastOnButtonState == onButtonState);
-        digitalWrite(STATUS_PIN, LOW);
+        //digitalWrite(STATUS_PIN, LOW);
         delay(100); // Wait a bit between retransmissions
       }     
    }
@@ -75,18 +75,18 @@ void loop() {
       // delay, so take it as the actual current state:
   
       if (offButtonState) {
-        Serial.println("Pressed off, sending");
+        //Serial.println("Pressed off, sending");
         wakeUpTime = millis();                                /*time when user begins interaction with device*/
-        digitalWrite(STATUS_PIN, HIGH);
+        //digitalWrite(STATUS_PIN, HIGH);
         sendOffCode(lastOffButtonState == offButtonState);
-        digitalWrite(STATUS_PIN, LOW);
+        //digitalWrite(STATUS_PIN, LOW);
         delay(100); // Wait a bit between retransmissions
       }     
    }
     lastOnButtonState = onButtonState;
     lastOffButtonState = offButtonState;
   }
-  Serial.println("sleeping now");
+  //Serial.println("sleeping now");
   enterSleep();                                               /*after wakeDuration, go back to sleep*/
 }
 
@@ -95,7 +95,7 @@ void sendOnCode(int repeat) {
   delay(250);
   irsend.sendNEC(0x5EA1B847, 32);   /*Reciever/computer power*/
   delay(250);
-  Serial.println("Sent on code");
+  //Serial.println("Sent on code");
 }
 
 void sendOffCode(int repeat) {
@@ -103,7 +103,7 @@ void sendOffCode(int repeat) {
   delay(250);
   irsend.sendNEC(0x5EA17887, 32);   /*Reciever/computer power*/
   delay(250);
-  Serial.println("Sent off code");
+  //Serial.println("Sent off code");
 }
 
 //Description: Service routine for pin2 interrupt  
