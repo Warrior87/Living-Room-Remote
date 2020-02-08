@@ -40,7 +40,7 @@ void setup()
 }
 
 void loop() {
-  wakeUpTime = millis();
+  wakeUpTime = millis();                                /*time when user begins interaction with device*/
   while((millis() - wakeUpTime) < wakeDuration){        /*while we need to stay awake, handle button presses*/
     // If button pressed, send the code.
     byte onButtonState = digitalRead(onButtonPin);
@@ -62,6 +62,7 @@ void loop() {
   
       if (onButtonState) {
         Serial.println("Pressed on, sending");
+        wakeUpTime = millis();                                /*time when user begins interaction with device*/
         digitalWrite(STATUS_PIN, HIGH);
         sendOnCode(lastOnButtonState == onButtonState);
         digitalWrite(STATUS_PIN, LOW);
@@ -75,6 +76,7 @@ void loop() {
   
       if (offButtonState) {
         Serial.println("Pressed off, sending");
+        wakeUpTime = millis();                                /*time when user begins interaction with device*/
         digitalWrite(STATUS_PIN, HIGH);
         sendOffCode(lastOffButtonState == offButtonState);
         digitalWrite(STATUS_PIN, LOW);
@@ -84,6 +86,7 @@ void loop() {
     lastOnButtonState = onButtonState;
     lastOffButtonState = offButtonState;
   }
+  Serial.println("sleeping now");
   enterSleep();                                               /*after wakeDuration, go back to sleep*/
 }
 
